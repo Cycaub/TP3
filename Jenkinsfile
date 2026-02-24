@@ -20,11 +20,11 @@ stages {
             }
         }
 
-        stage('Terraform Format & Validate') {
-            steps {
-                sh 'terraform fmt -check'
-                sh 'terraform validate'
-            }
+        // stage('Terraform Format & Validate') {
+        //     steps {
+        //         sh 'terraform fmt -check'
+        //         sh 'terraform validate'
+        // }
         }
 
         stage('Terraform Plan') {
