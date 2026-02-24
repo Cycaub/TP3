@@ -1,55 +1,48 @@
 pipeline {
     agent any
 
-    //  environment {
-    //    TF_IN_AUTOMATION = 'true'
-    // }
+    environment {
+        // Désactive l'interactivité pour Terraform en mode CI
+        TF_IN_AUTOMATION = 'true'
+    }
 
-
-
-stages {
+    stages {
         stage('Checkout') {
             steps {
+                // Récupère le code depuis votre dépôt Git
                 checkout scm
             }
         }
 
         stage('Terraform Init') {
             steps {
+                // Initialise le backend et les plugins
                 sh 'terraform init'
             }
         }
 
-        // stage('Terraform Format & Validate') {
-        //     steps {
-        //         sh 'terraform fmt -check'
-        //         sh 'terraform validate'
-        // }
-        }
-
         stage('Terraform Plan') {
             steps {
-                // Génère un plan de sauvegarde pour l'exécution
+                // Génère le plan de modification
                 sh 'terraform plan -out=tfplan'
             }
         }
 
-        // stage('Approval') {
-        //     // Cette étape met la pipeline en pause pour une validation humaine
-        //     steps {
-        //         input message: "Voulez-vous appliquer ces changements sur l'infrastructure ?"
-        //     }
-        // }
-
         stage('Terraform Apply') {
             steps {
-                sh 'terraform apply'
+                // Applique les changements sans demander de confirmation manuelle
+                // car nous utilisons le fichier de plan généré précédemment
+                sh 'terraform apply -input=false tfplan'
             }
         }
     }
-    
+
     post {
-        always {
-            cleanWs() // Nettoie l'espace de travail après l'exécution
+        success {
+            echo "L'infrastructure a été déployée avec succès !"
+        }
+        failure {
+            echo "Le déploiement a échoué. Vérifiez les logs."
         }
     }
+}
