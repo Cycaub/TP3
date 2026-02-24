@@ -1,8 +1,15 @@
 pipeline {
     agent any
 
+    //  environment {
+    //    TF_IN_AUTOMATION = 'true'
+    // }
+
+
     stages {
-        stage('Build') {
+
+
+        stage('Terraform Init') {
             steps {
                 echo 'Building..'
             }
