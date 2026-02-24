@@ -17,7 +17,7 @@ pipeline {
         stage('Terraform Init') {
             steps {
                 // Initialise le backend et les plugins
-                sh 'terraform init'
+                sh 'terraform init -backend-config="key$client-$env.tfstate'
             }
         }
 
