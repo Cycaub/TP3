@@ -53,4 +53,3 @@ stages {
             cleanWs() // Nettoie l'espace de travail après l'exécution
         }
     }
-}
