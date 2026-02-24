@@ -34,12 +34,12 @@ stages {
             }
         }
 
-        stage('Approval') {
-            // Cette étape met la pipeline en pause pour une validation humaine
-            steps {
-                input message: "Voulez-vous appliquer ces changements sur l'infrastructure ?"
-            }
-        }
+        // stage('Approval') {
+        //     // Cette étape met la pipeline en pause pour une validation humaine
+        //     steps {
+        //         input message: "Voulez-vous appliquer ces changements sur l'infrastructure ?"
+        //     }
+        // }
 
         stage('Terraform Apply') {
             steps {
