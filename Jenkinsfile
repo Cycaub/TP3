@@ -43,7 +43,7 @@ stages {
 
         stage('Terraform Apply') {
             steps {
-                sh 'terraform apply -input=false tfplan'
+                sh 'terraform apply'
             }
         }
     }
