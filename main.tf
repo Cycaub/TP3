@@ -1,6 +1,6 @@
 # Le reseau global
 resource "aws_vpc" "VPC_main" {
-  cidr_block       = var.vpc_cidr [cite: 1]
+  cidr_block       = var.vpc_cidr
 
   tags = {
     Name        = "VPC_Main_${var.client}"
@@ -97,7 +97,7 @@ resource "aws_nat_gateway" "main_nat" {
   tags = {
     Name = "Main_NAT_${var.env}"
   }
-  depends_on = [aws_internet_gateway.igw] [cite: 4]
+  depends_on = [aws_internet_gateway.igw]
 }
 
 resource "aws_route_table" "private_rt" {
