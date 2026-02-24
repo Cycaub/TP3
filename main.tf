@@ -1,10 +1,11 @@
-# Le reseau global
+# --- VPC & Réseau ---
 resource "aws_vpc" "VPC_main" {
-  cidr_block       = var.vpc_cidr
+  cidr_block = var.vpc_cidr
 
   tags = {
-    Name        = "VPC_Main_${var.client}"
-    Environment = var.env
+    Name        = "vpc-${var.entreprise}-${var.environment}"
+    Environment = var.environment
+    Company     = var.entreprise
   }
 }
 
@@ -15,7 +16,7 @@ resource "aws_subnet" "subnet1001private" {
   availability_zone = "us-east-1a"
 
   tags = {
-    Name = "subnet_private_1_${var.env}"
+    Name = "sn-priv-1-${var.entreprise}-${var.environment}"
   }
 }
 
@@ -25,7 +26,7 @@ resource "aws_subnet" "subnet1002private" {
   availability_zone = "us-east-1b" 
 
   tags = {
-    Name = "subnet_private_2_${var.env}"
+    Name = "sn-priv-2-${var.entreprise}-${var.environment}"
   }
 }
 
@@ -36,7 +37,7 @@ resource "aws_subnet" "subnet1003public" {
   availability_zone = "us-east-1a" 
 
   tags = {
-    Name = "subnet_public_1_${var.env}"
+    Name = "sn-pub-1-${var.entreprise}-${var.environment}"
   }
 }
 
@@ -46,16 +47,16 @@ resource "aws_subnet" "subnet1004public" {
   availability_zone = "us-east-1b"
 
   tags = {
-    Name = "subnet_public_2_${var.env}"
+    Name = "sn-pub-2-${var.entreprise}-${var.environment}"
   }
 }
 
-# Internet Gateway
+# --- Connectivité ---
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.VPC_main.id 
   
   tags = {
-    Name = "igw_${var.client}"
+    Name = "igw-${var.entreprise}-${var.environment}"
   }
 }
 
@@ -68,7 +69,7 @@ resource "aws_route_table" "public_rt" {
   }
 
   tags = {
-    Name = "Public_RT_${var.env}"
+    Name = "rt-pub-${var.entreprise}-${var.environment}"
   }
 }
 
@@ -86,7 +87,7 @@ resource "aws_route_table_association" "b" {
 resource "aws_eip" "nat_eip" {
   domain = "vpc" 
   tags = {
-    Name = "NAT_EIP_${var.client}"
+    Name = "eip-nat-${var.entreprise}-${var.environment}"
   }
 }
 
@@ -95,7 +96,7 @@ resource "aws_nat_gateway" "main_nat" {
   subnet_id     = aws_subnet.subnet1003public.id
 
   tags = {
-    Name = "Main_NAT_${var.env}"
+    Name = "nat-${var.entreprise}-${var.environment}"
   }
   depends_on = [aws_internet_gateway.igw]
 }
@@ -109,7 +110,7 @@ resource "aws_route_table" "private_rt" {
   }
 
   tags = {
-    Name = "Private_RT_${var.env}"
+    Name = "rt-priv-${var.entreprise}-${var.environment}"
   }
 }
 
@@ -123,10 +124,11 @@ resource "aws_route_table_association" "pri_assoc_2" {
   route_table_id = aws_route_table.private_rt.id 
 }
 
-# Security Groups
+# --- Sécurité ---
 resource "aws_security_group" "alb_sg" {
-  name   = "alb-sg-${var.env}"
-  vpc_id = aws_vpc.VPC_main.id 
+  name        = "sg-alb-${var.entreprise}-${var.environment}"
+  description = "Security group for ALB"
+  vpc_id      = aws_vpc.VPC_main.id 
 
   ingress {
     from_port   = 80 
@@ -144,8 +146,9 @@ resource "aws_security_group" "alb_sg" {
 }
 
 resource "aws_security_group" "web_sg" {
-  name   = "web-sg-${var.env}"
-  vpc_id = aws_vpc.VPC_main.id
+  name        = "sg-web-${var.entreprise}-${var.environment}"
+  description = "Security group for web instances"
+  vpc_id      = aws_vpc.VPC_main.id
 
   ingress {
     from_port       = 80
@@ -160,12 +163,13 @@ resource "aws_security_group" "web_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  
   lifecycle {
     create_before_destroy = true
   }
 }
 
-# EC2 Instances
+# --- Compute (EC2) ---
 resource "aws_instance" "web_server_1" {
   ami                         = "ami-0f3caa1cf4417e51b"
   instance_type               = "t2.micro"
@@ -175,7 +179,7 @@ resource "aws_instance" "web_server_1" {
   user_data_replace_on_change = true
   
   tags = {
-    Name = "Web_Server_${var.client}_1"
+    Name = "web-srv-1-${var.entreprise}-${var.environment}"
   }
 }
 
@@ -188,13 +192,13 @@ resource "aws_instance" "web_server_2" {
   user_data_replace_on_change = true
 
   tags = {
-    Name = "Web_Server_${var.client}_2"
+    Name = "web-srv-2-${var.entreprise}-${var.environment}"
   }
 }
 
-# ALB
+# --- Load Balancing ---
 resource "aws_lb" "main_alb" {
-  name               = "alb-${var.env}"
+  name               = "alb-${var.entreprise}-${var.environment}"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
@@ -202,7 +206,7 @@ resource "aws_lb" "main_alb" {
 }
 
 resource "aws_lb_target_group" "web_tg" {
-  name     = "tg-${var.env}"
+  name     = "tg-${var.entreprise}-${var.environment}"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.VPC_main.id

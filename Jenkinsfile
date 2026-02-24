@@ -1,37 +1,25 @@
 pipeline {
     agent any
-
     parameters {
-        // Définit le nom du client
-        string(name: 'CLIENT', defaultValue: 'nom-du-client', description: 'Nom du client pour le déploiement')
-        
-        // Définit l'environnement cible
-        choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: 'Environnement cible')
+        string(name: 'ENTREPRISE', defaultValue: 'acme', description: 'Nom du client')
+        string(name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Environnement')
     }
-
-    environment {
-        TF_IN_AUTOMATION = 'true'
-    }
-
     stages {
-        stage('Initialisation') {
+        stage('Terraform Init') {
             steps {
-                echo "Déploiement pour le client : ${params.CLIENT} en environnement : ${params.ENV}"
                 sh 'terraform init'
             }
         }
-
         stage('Terraform Plan') {
             steps {
-                // On passe les paramètres Jenkins aux variables Terraform
-                sh "terraform plan -var='client=${params.CLIENT}' -var='env=${params.ENV}' -out=tfplan"
+                // Utilisation des variables Jenkins dans la commande Terraform
+                sh "terraform plan -var='entreprise=${params.ENTREPRISE}' -var='environment=${params.ENVIRONMENT}'"
             }
         }
-
         stage('Terraform Apply') {
             steps {
-                sh 'terraform apply -input=false tfplan'
+                sh "terraform apply -var='entreprise=${params.ENTREPRISE}' -var='environment=${params.ENVIRONMENT}' --auto-approve"
             }
         }
     }
-}    
+}
