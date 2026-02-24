@@ -1,48 +1,37 @@
 pipeline {
     agent any
 
+    parameters {
+        // Définit le nom du client
+        string(name: 'CLIENT', defaultValue: 'nom-du-client', description: 'Nom du client pour le déploiement')
+        
+        // Définit l'environnement cible
+        choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: 'Environnement cible')
+    }
+
     environment {
-        // Désactive l'interactivité pour Terraform en mode CI
         TF_IN_AUTOMATION = 'true'
     }
 
     stages {
-        stage('Checkout') {
+        stage('Initialisation') {
             steps {
-                // Récupère le code depuis votre dépôt Git
-                checkout scm
-            }
-        }
-
-        stage('Terraform Init') {
-            steps {
-                // Initialise le backend et les plugins
-                sh 'terraform init -backend-config="key$client-$env.tfstate'
+                echo "Déploiement pour le client : ${params.CLIENT} en environnement : ${params.ENV}"
+                sh 'terraform init'
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                // Génère le plan de modification
-                sh 'terraform plan -out=tfplan'
+                // On passe les paramètres Jenkins aux variables Terraform
+                sh "terraform plan -var='client=${params.CLIENT}' -var='env=${params.ENV}' -out=tfplan"
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                // Applique les changements sans demander de confirmation manuelle
-                // car nous utilisons le fichier de plan généré précédemment
                 sh 'terraform apply -input=false tfplan'
             }
-        }
-    }
-
-    post {
-        success {
-            echo "L'infrastructure a été déployée avec succès !"
-        }
-        failure {
-            echo "Le déploiement a échoué. Vérifiez les logs."
         }
     }
 }
