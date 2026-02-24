@@ -8,7 +8,7 @@ variable "entreprise" {
   description = "Le nom du entreprise passé par Jenkins"
 }
 
-variable "env" {
+variable "environment" {
   type        = string
   description = "L'environnement (dev, staging, prod) passé par Jenkins"
 }
